@@ -1,0 +1,38 @@
+﻿@page "/"
+
+<h1>gRPC</h1>
+
+<span>Text:</span> <input type="text" @bind-value="text" />
+
+<button class="btn btn-primary" @onclick="SendRequest">Click me</button>
+<br />
+
+@foreach (var response in responses)
+{
+    <b>@response</b> <br />
+}
+
+
+@code {
+    string text = "";
+    List<string> responses = new();
+
+    private async Task SendRequest()
+    {
+        var client = GetGrpcClient();
+
+        var res = await client.SayHelloAsync(new HelloRequest { Name = text });
+
+        responses.Add(res.Message);
+    }
+
+    private GreeterClient GetGrpcClient()
+    {
+        var channel = GrpcChannel.ForAddress("https://localhost:5050", new GrpcChannelOptions
+            {
+                HttpHandler = new GrpcWebHandler(new HttpClientHandler())
+            });
+
+        return new Greeter.GreeterClient(channel);
+    }
+}
